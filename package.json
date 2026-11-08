@@ -1,0 +1,37 @@
+{
+  "name": "mp3-library",
+  "displayName": "MP3 Library",
+  "version": "1.0.0",
+  "description": "Node.js/web tool for searching, playing and organising your MP3 collection, self-hosted in Docker",
+  "copyright": "Copyright (c) 2026 Jason Rhodes",
+  "author": "Jason Rhodes",
+  "license": "MIT",
+  "homepage": "https://github.com/jason4bury/MP3-Library",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jason4bury/MP3-Library.git"
+  },
+  "private": true,
+  "main": "server/index.js",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "start": "node server/index.js",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.11.1",
+    "dotenv": "^16.4.5",
+    "express": "^4.22.2",
+    "express-session": "^1.18.0",
+    "mime-types": "^2.1.35",
+    "music-metadata": "^11.16.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "eslint": "^9.17.0",
+    "globals": "^15.14.0"
+  }
+}
