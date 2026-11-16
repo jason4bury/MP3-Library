@@ -6,7 +6,7 @@
 
 A self-hosted web app for searching, playing and organising your MP3 collection, run in Docker.
 
-![Version](https://img.shields.io/badge/version-v1.00-blue)
+![Version](https://img.shields.io/badge/version-v1.01-blue)
 ![Platform](https://img.shields.io/badge/platform-Docker-2496ED?logo=docker&logoColor=white)
 ![Node.js](https://img.shields.io/badge/Node.js-22-339933?logo=nodedotjs&logoColor=white)
 ![Licence](https://img.shields.io/badge/licence-MIT-green)
@@ -40,16 +40,28 @@ MP3 Library scans your music folders, reads the ID3 tags and embedded cover art,
 
 ## 📦 Installation
 
-1. Download or clone this repository onto the Docker host.
-2. Copy `.env.example` to `.env` and fill it in (see Configuration below). At minimum set your music and pictures folders, `APP_USERNAME`, `APP_PASSWORD` and `SESSION_SECRET`.
-3. Start it from the repository folder:
+The compose file is made for a shared Docker folder: one main `.env` next to `docker-compose.yml` that names your folders, and a separate `.env` for each app. The main `.env` needs:
+
+```
+ENV=E:/Docker/env          # folder holding one subfolder per app, each with its .env
+CONFIGS=E:/Docker/configs  # folder holding one data subfolder per app
+MUSIC=D:                   # music rootMP3_ARTIST_PICS=D:/Music/Artist Pictures
+```
+
+Compose reads `${...}` values only from that main `.env`, never from the app's own `.env`.
+
+1. Put `docker-compose.yml` from this repository in your Docker folder (or add its `mp3-library` service to the compose file you already have), and set the four values above in the main `.env`.
+2. Copy `.env.example` to `<ENV>/mp3-library/.env` and fill it in (see Configuration below). At minimum set `APP_USERNAME`, `APP_PASSWORD` and `SESSION_SECRET`.
+3. Start it from the Docker folder:
 
    ```
-   docker compose up -d
+   docker compose up -d mp3-library
    ```
 
-   This pulls `jason4bury/mp3-library` from Docker Hub. To build the image from the source instead, run `docker compose up -d --build`.
-4. Open `http://<your-server>:3000` (or the `PORT` you set) and sign in. The first scan starts on its own.
+   This pulls `jason4bury/mp3-library` from Docker Hub. To build the image yourself, run `docker build -t jason4bury/mp3-library .` in this repository first.
+4. Open `http://<your-server>:3000` and sign in. The first scan starts on its own.
+
+Your music is read from `<MUSIC>/main` and `<MUSIC>/soundtracks`. Change those two volume lines in `docker-compose.yml` if your folders are elsewhere.
 
 **Updating:** `docker compose pull` then `docker compose up -d`. The database is upgraded in place on start-up; nothing needs rescanning.
 
@@ -68,19 +80,14 @@ The app can't see anything at the paths you gave it. Check the mount from inside
 docker compose exec mp3-library ls -la /music/collection1
 ```
 
-If that's empty, check `MUSIC_HOST_DIR_1` and `MUSIC_HOST_DIR_2` in `.env`. On Windows with Docker Desktop's older Hyper-V backend, also check the drive is shared under Settings > Resources > File sharing (the WSL 2 backend shares all drives).
+If that's empty, check `MUSIC` in the main `.env` and the music volume lines in `docker-compose.yml`. On Windows with Docker Desktop's older Hyper-V backend, also check the drive is shared under Settings > Resources > File sharing (the WSL 2 backend shares all drives).
 
 ## ⚙️ Configuration
 
-All settings live in `.env` next to `docker-compose.yml`. `.env` is gitignored; `.env.example` shows every setting.
+The app's settings live in `<ENV>/mp3-library/.env`, which the compose file passes to the container with `env_file`. Keep it out of Git; `.env.example` shows every setting.
 
 | Setting | Required | What it does |
 | --- | --- | --- |
-| `PORT` | | Port on the host (default `3000`) |
-| `MP3_LIBRARY_TAG` | | Image tag to run: `latest` (default) or a version such as `1.00` |
-| `MUSIC_HOST_DIR_1`, `MUSIC_HOST_DIR_2` | Yes | Your music folders on the host, mounted read-only |
-| `ARTIST_PICTURES_HOST_DIR` | Yes | Your artist pictures folder on the host, mounted read-only |
-| `DATA_HOST_DIR` | | Host folder for the database. Blank uses the `mp3-library-data` Docker volume |
 | `MUSIC_DIR` | | Music folders as the container sees them, comma-separated |
 | `APP_USERNAME`, `APP_PASSWORD` | Yes | The sign-in account |
 | `SESSION_SECRET` | Yes | Random string of 32+ characters that signs session cookies |
@@ -89,11 +96,13 @@ All settings live in `.env` next to `docker-compose.yml`. `.env` is gitignored; 
 
 The app refuses to start if the sign-in settings are missing or still the example values, and says which one in `docker compose logs mp3-library`.
 
-**One music folder only?** Delete the `MUSIC_HOST_DIR_2` volume line in `docker-compose.yml` and set `MUSIC_DIR=/music/collection1` in `.env`. More than two? Add `MUSIC_HOST_DIR_3` with a matching volume line and append `/music/collection3` to `MUSIC_DIR`.
+The host port (`3000`), and `PORT`, `ARTIST_PICTURES_DIR` and `DATA_DIR` inside the container, are fixed in `docker-compose.yml`. The music, artist pictures and data folders are set in the main `.env`, not here.
+
+**One music folder only?** Delete the `collection2` volume line in `docker-compose.yml` and set `MUSIC_DIR=/music/collection1` in the app's `.env`. More than two? Add a `/music/collection3` volume line and append `/music/collection3` to `MUSIC_DIR`.
 
 ### Where data is stored
 
-The database (`library.db`: tracks, cover art, artist photos, playlists, favourites, history, Last.fm cache and sessions) is in the container's `/data` folder, which is the `mp3-library-data` Docker volume, or `DATA_HOST_DIR` if you set it. It survives rebuilds and updates. The app never writes to your music or pictures folders.
+The database (`library.db`: tracks, cover art, artist photos, playlists, favourites, history, Last.fm cache and sessions) is in the container's `/data` folder, which is `<CONFIGS>/mp3-library` on the host. It survives rebuilds and updates. The app never writes to your music or pictures folders.
 
 ### Putting it on the internet
 
@@ -103,7 +112,7 @@ The database (`library.db`: tracks, cover art, artist photos, playlists, favouri
 
 ### Running without Docker
 
-Install Node.js 22.12+, run `npm ci --omit=dev`, set `MUSIC_DIR`, `ARTIST_PICTURES_DIR` and `DATA_DIR` in `.env` to real paths on that machine (the `*_HOST_DIR` settings are then ignored), and start it with `npm start`.
+Install Node.js 22.12+, run `npm ci --omit=dev`, set `MUSIC_DIR`, `ARTIST_PICTURES_DIR` and `DATA_DIR` in `.env` to real paths on that machine and start it with `npm start`. It listens on port 3000 unless `PORT` is set.
 
 ### Project layout
 

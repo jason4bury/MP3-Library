@@ -7,6 +7,25 @@ restarted at v1.00; earlier changes are in [docs/HISTORY-before-1.00.md](docs/HI
 
 ## [Unreleased]
 
+## [1.01] - 2026-11-16
+
+### Changed
+- `docker-compose.yml` now fits a shared Docker setup: the app's settings come from its own
+  `.env` through `env_file` (`${ENV}/mp3-library/.env`), and the data, music and artist
+  pictures folders come from `CONFIGS`, `MUSIC` and `MP3_ARTIST_PICS` in the main `.env` next
+  to the compose file. It runs the published image; it no longer builds from source
+  (use `docker build -t jason4bury/mp3-library .` for that). Adds a `home.group=Music` label.
+- `PORT`, `ARTIST_PICTURES_DIR` and `DATA_DIR` are fixed in the compose file, so nothing in the
+  app's `.env` can move them.
+- `.env.example` now holds only the settings the app reads: `MUSIC_DIR`, the sign-in settings
+  and Last.fm.
+
+### Removed
+- The `mp3-library-data` named volume.
+- `PORT`, `MP3_LIBRARY_TAG`, `MUSIC_HOST_DIR_1`, `MUSIC_HOST_DIR_2`,
+  `ARTIST_PICTURES_HOST_DIR` and `DATA_HOST_DIR` from `.env.example`: the folders now come from
+  the main `.env`.
+
 ## [1.00] - 2026-11-07
 
 First release in the house style. Includes everything in the earlier history, plus:

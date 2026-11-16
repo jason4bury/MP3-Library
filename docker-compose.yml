@@ -1,37 +1,29 @@
-# MP3 Library. Every ${VALUE} below comes from your .env file (copy .env.example to .env),
-# so .env is normally the only file you edit.
-#
-#   docker compose up -d            pulls jason4bury/mp3-library from Docker Hub and starts it
-#   docker compose up -d --build    builds the image from this folder instead
 services:
+
   mp3-library:
-    image: jason4bury/mp3-library:${MP3_LIBRARY_TAG:-latest}
-    build: .
+    image: jason4bury/mp3-library
     container_name: mp3-library
+    labels:
+      - home.group=Music
+    # App settings come from E:\Docker_PC\env\mp3-library\.env: MUSIC_DIR, APP_USERNAME,
+    # APP_PASSWORD, SESSION_SECRET, LASTFM_API_KEY, LASTFM_API_SECRET.
+    env_file:
+      - ${ENV}/mp3-library/.env
+    # Fixed container-side values. These override anything with the same name in the
+    # .env file.
     environment:
       PORT: 3000
-      MUSIC_DIR: ${MUSIC_DIR:-/music/collection1}
       ARTIST_PICTURES_DIR: /artist-pictures
       DATA_DIR: /data
-      APP_USERNAME: ${APP_USERNAME}
-      APP_PASSWORD: ${APP_PASSWORD}
-      SESSION_SECRET: ${SESSION_SECRET}
-      # Optional: Last.fm artist/album info and Radio (key), plus scrobbling (key and secret).
-      LASTFM_API_KEY: ${LASTFM_API_KEY:-}
-      LASTFM_API_SECRET: ${LASTFM_API_SECRET:-}
     volumes:
-      # Database, cover art cache and sessions. A named Docker volume by default; set
-      # DATA_HOST_DIR in .env to keep it in a folder on the host instead.
-      - ${DATA_HOST_DIR:-mp3-library-data}:/data
+      # Database, cover art cache and sessions.
+      - ${CONFIGS}/mp3-library:/data
       # Music and artist pictures are read-only: the app never writes to them.
-      # Only one music folder? Delete the MUSIC_HOST_DIR_2 line and set
-      # MUSIC_DIR=/music/collection1 in .env.
-      - ${MUSIC_HOST_DIR_1}:/music/collection1:ro
-      - ${MUSIC_HOST_DIR_2}:/music/collection2:ro
-      - ${ARTIST_PICTURES_HOST_DIR}:/artist-pictures:ro
+      # Only one music folder? Delete the collection2 line and set
+      # MUSIC_DIR=/music/collection1 in the app's .env.
+      - ${MUSIC}/main:/music/collection1:ro
+      - ${MUSIC}/soundtracks:/music/collection2:ro
+      - ${MP3_ARTIST_PICS}:/artist-pictures:ro
     ports:
-      - "${PORT:-3000}:3000"
+      - 3000:3000
     restart: unless-stopped
-
-volumes:
-  mp3-library-data:
