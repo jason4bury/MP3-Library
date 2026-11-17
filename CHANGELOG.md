@@ -7,6 +7,21 @@ restarted at v1.00; earlier changes are in [docs/HISTORY-before-1.00.md](docs/HI
 
 ## [Unreleased]
 
+## [1.02] - 2026-11-17
+
+### Changed
+- `docker-compose.yml` and `.env.example` work for anyone again, with no shared Docker folder
+  needed: one `.env` next to the compose file holds the folders, port and app settings.
+  Compose stops with a clear message if `MUSIC_HOST_DIR_1` or `ARTIST_PICTURES_HOST_DIR` is
+  missing.
+- One music folder by default (`MUSIC_HOST_DIR_1`); a second is one line to switch on.
+- The database goes in the `mp3-library-data` Docker volume unless `DATA_HOST_DIR` is set.
+- The image tag (`MP3_LIBRARY_TAG`) and host port (`PORT`) can be set in `.env` again.
+
+### Removed
+- The `ENV`, `CONFIGS`, `MUSIC` and `MP3_ARTIST_PICS` variables from a shared main `.env`, and
+  the `home.group` label.
+
 ## [1.01] - 2026-11-16
 
 ### Changed
