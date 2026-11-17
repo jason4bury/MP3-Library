@@ -7,6 +7,18 @@ restarted at v1.00; earlier changes are in [docs/HISTORY-before-1.00.md](docs/HI
 
 ## [Unreleased]
 
+## [1.03] - 2026-11-17
+
+### Changed
+- Your music and artist pictures folders now go straight into `docker-compose.yml` (replace the
+  `/path/to/...` examples), so they aren't set twice. `.env` holds only the app settings.
+- The host port is set in `docker-compose.yml` (`"3000:3000"`), and the compose file runs
+  `jason4bury/mp3-library:latest`.
+
+### Removed
+- `PORT`, `MP3_LIBRARY_TAG`, `MUSIC_HOST_DIR_1`, `MUSIC_HOST_DIR_2`, `ARTIST_PICTURES_HOST_DIR`
+  and `DATA_HOST_DIR` from `.env.example`.
+
 ## [1.02] - 2026-11-17
 
 ### Changed

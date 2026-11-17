@@ -1,4 +1,4 @@
-# MP3 Library v1.02. Build with: docker build -t jason4bury/mp3-library:1.02 .
+# MP3 Library v1.03. Build with: docker build -t jason4bury/mp3-library:1.03 .
 # Node.js is pinned to an exact version so every build is the same; bump it here on purpose.
 ARG NODE_IMAGE=node:22.23.4-bookworm-slim
 
@@ -15,7 +15,7 @@ RUN npm ci --omit=dev
 FROM ${NODE_IMAGE}
 LABEL org.opencontainers.image.title="MP3 Library" \
       org.opencontainers.image.description="Self-hosted web app for searching, playing and organising an MP3 collection" \
-      org.opencontainers.image.version="1.02" \
+      org.opencontainers.image.version="1.03" \
       org.opencontainers.image.source="https://github.com/jason4bury/MP3-Library" \
       org.opencontainers.image.licenses="MIT" \
       org.opencontainers.image.authors="Jason Rhodes"

@@ -1,12 +1,13 @@
-# MP3 Library. Copy .env.example to .env next to this file, fill it in, then run:
-#   docker compose up -d
-# Every ${VALUE} below comes from that .env, so .env is normally the only file you edit.
+# MP3 Library
+# 1. Change the two folder paths under "volumes" to your own folders.
+# 2. Copy .env.example to .env next to this file and fill in the sign-in settings.
+# 3. Run: docker compose up -d   then open http://<your-server>:3000
 services:
 
   mp3-library:
-    image: jason4bury/mp3-library:${MP3_LIBRARY_TAG:-latest}
+    image: jason4bury/mp3-library:latest
     container_name: mp3-library
-    # Passes the app settings in .env (sign-in, Last.fm, MUSIC_DIR) to the container.
+    # App settings (sign-in, Last.fm, MUSIC_DIR) come from .env.
     env_file:
       - .env
     # Fixed container-side values. These override anything with the same name in .env.
@@ -15,16 +16,20 @@ services:
       ARTIST_PICTURES_DIR: /artist-pictures
       DATA_DIR: /data
     volumes:
-      # Database, cover art cache and sessions. A named Docker volume unless DATA_HOST_DIR is set.
-      - ${DATA_HOST_DIR:-mp3-library-data}:/data
-      # Music and artist pictures are read-only: the app never writes to them.
-      - ${MUSIC_HOST_DIR_1:?Set MUSIC_HOST_DIR_1 in .env to your music folder}:/music/collection1:ro
-      # A second music folder? Remove the # below, set MUSIC_HOST_DIR_2 in .env and add
-      # /music/collection2 to MUSIC_DIR.
-      # - ${MUSIC_HOST_DIR_2}:/music/collection2:ro
-      - ${ARTIST_PICTURES_HOST_DIR:?Set ARTIST_PICTURES_HOST_DIR in .env to your artist pictures folder}:/artist-pictures:ro
+      # Database, cover art cache and sessions, in a Docker volume. To keep them in a folder
+      # instead, replace mp3-library-data with a path such as D:/Docker/mp3-library.
+      - mp3-library-data:/data
+      # Your music folder. Read-only: the app never writes to it.
+      # Windows: D:/Music   Linux/NAS: /volume1/music
+      - /path/to/music:/music/collection1:ro
+      # A second music folder? Remove the # below, change the path, and set
+      # MUSIC_DIR=/music/collection1,/music/collection2 in .env.
+      # - /path/to/more-music:/music/collection2:ro
+      # Artist pictures, one subfolder per artist (Artist Pictures/Radiohead/folder.jpg).
+      - /path/to/artist-pictures:/artist-pictures:ro
     ports:
-      - "${PORT:-3000}:3000"
+      # Change the first number to use a different port on the host.
+      - "3000:3000"
     restart: unless-stopped
 
 volumes:

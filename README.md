@@ -6,7 +6,7 @@
 
 A self-hosted web app for searching, playing and organising your MP3 collection, run in Docker.
 
-![Version](https://img.shields.io/badge/version-v1.02-blue)
+![Version](https://img.shields.io/badge/version-v1.03-blue)
 ![Platform](https://img.shields.io/badge/platform-Docker-2496ED?logo=docker&logoColor=white)
 ![Node.js](https://img.shields.io/badge/Node.js-22-339933?logo=nodedotjs&logoColor=white)
 ![Licence](https://img.shields.io/badge/licence-MIT-green)
@@ -41,17 +41,18 @@ MP3 Library scans your music folders, reads the ID3 tags and embedded cover art,
 ## 📦 Installation
 
 1. Put `docker-compose.yml` and `.env.example` from this repository in a folder on the Docker host (or clone the repository).
-2. Copy `.env.example` to `.env` in the same folder and fill it in (see Configuration below). At minimum set `MUSIC_HOST_DIR_1`, `ARTIST_PICTURES_HOST_DIR`, `APP_USERNAME`, `APP_PASSWORD` and `SESSION_SECRET`.
-3. Start it from that folder:
+2. In `docker-compose.yml`, change `/path/to/music` and `/path/to/artist-pictures` under `volumes` to your own folders (for example `D:/Music` on Windows or `/volume1/music` on a NAS).
+3. Copy `.env.example` to `.env` in the same folder and set `APP_USERNAME`, `APP_PASSWORD` and `SESSION_SECRET` (see Configuration below).
+4. Start it from that folder:
 
    ```
    docker compose up -d
    ```
 
    This pulls `jason4bury/mp3-library` from Docker Hub. To build the image yourself, run `docker build -t jason4bury/mp3-library .` in this repository first.
-4. Open `http://<your-server>:3000` (or the `PORT` you set) and sign in. The first scan starts on its own.
+5. Open `http://<your-server>:3000` and sign in. The first scan starts on its own.
 
-If a required folder is missing from `.env`, `docker compose` stops and says which one.
+To use a different port on the host, change the first number in `"3000:3000"` in `docker-compose.yml`.
 
 **Updating:** `docker compose pull` then `docker compose up -d`. The database is upgraded in place on start-up; nothing needs rescanning.
 
@@ -70,20 +71,14 @@ The app can't see anything at the paths you gave it. Check the mount from inside
 docker compose exec mp3-library ls -la /music/collection1
 ```
 
-If that's empty, check `MUSIC_HOST_DIR_1` (and `MUSIC_HOST_DIR_2`) in `.env`. On Windows with Docker Desktop's older Hyper-V backend, also check the drive is shared under Settings > Resources > File sharing (the WSL 2 backend shares all drives).
+If that's empty, check the music folder path under `volumes` in `docker-compose.yml`. On Windows with Docker Desktop's older Hyper-V backend, also check the drive is shared under Settings > Resources > File sharing (the WSL 2 backend shares all drives).
 
 ## ⚙️ Configuration
 
-All settings live in `.env` next to `docker-compose.yml`. `.env` is gitignored; `.env.example` shows every setting. Compose uses the folder and port settings, and passes the rest to the app.
+Your folders and the port are set in `docker-compose.yml`. The app settings live in `.env` next to it, which the compose file passes to the container. `.env` is gitignored; `.env.example` shows every setting.
 
 | Setting | Required | What it does |
 | --- | --- | --- |
-| `PORT` | | Port on the host (default `3000`) |
-| `MP3_LIBRARY_TAG` | | Image tag to run: `latest` (default) or a version such as `1.02` |
-| `MUSIC_HOST_DIR_1` | Yes | Your music folder on the host, mounted read-only |
-| `MUSIC_HOST_DIR_2` | | A second music folder (see below) |
-| `ARTIST_PICTURES_HOST_DIR` | Yes | Your artist pictures folder on the host, one subfolder per artist, mounted read-only |
-| `DATA_HOST_DIR` | | Host folder for the database. Blank uses the `mp3-library-data` Docker volume |
 | `MUSIC_DIR` | | Music folders as the container sees them, comma-separated (default `/music/collection1`) |
 | `APP_USERNAME`, `APP_PASSWORD` | Yes | The sign-in account |
 | `SESSION_SECRET` | Yes | Random string of 32+ characters that signs session cookies |
@@ -92,11 +87,11 @@ All settings live in `.env` next to `docker-compose.yml`. `.env` is gitignored; 
 
 The app refuses to start if the sign-in settings are missing or still the example values, and says which one in `docker compose logs mp3-library`.
 
-**A second music folder?** Set `MUSIC_HOST_DIR_2` in `.env`, remove the `#` from the `collection2` volume line in `docker-compose.yml`, and set `MUSIC_DIR=/music/collection1,/music/collection2`. More than two? Add a `/music/collection3` volume line the same way and append `/music/collection3` to `MUSIC_DIR`.
+**A second music folder?** Remove the `#` from the `collection2` volume line in `docker-compose.yml`, change its path, and set `MUSIC_DIR=/music/collection1,/music/collection2` in `.env`. More than two? Add a `/music/collection3` volume line the same way and append `/music/collection3` to `MUSIC_DIR`.
 
 ### Where data is stored
 
-The database (`library.db`: tracks, cover art, artist photos, playlists, favourites, history, Last.fm cache and sessions) is in the container's `/data` folder, which is the `mp3-library-data` Docker volume, or `DATA_HOST_DIR` if you set it. It survives rebuilds and updates. The app never writes to your music or pictures folders.
+The database (`library.db`: tracks, cover art, artist photos, playlists, favourites, history, Last.fm cache and sessions) is in the container's `/data` folder, which is the `mp3-library-data` Docker volume. To keep it in a folder instead, replace `mp3-library-data` in that volume line with a path such as `D:/Docker/mp3-library`. It survives rebuilds and updates. The app never writes to your music or pictures folders.
 
 ### Putting it on the internet
 
